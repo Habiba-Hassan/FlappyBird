@@ -59,13 +59,14 @@ let bird = {
   v: 0
 };
 
-let gravity = 0.38;
-let jump = -6.8;
+let gravity = 0.28;
+let jump = -6.2;
+
 
 // Pipes
 let pipes = [];
-let gap = 160;
-let speed = 2.4;
+let gap = 190;
+let speed = 2.1;
 let frame = 0;
 
 // Game state
@@ -73,8 +74,9 @@ let started = false;
 let gameOver = false;
 let score = 0;
 
-// ⭐ حركة واحدة بس (لمس أو Space)
 function flap() {
+
+  // لو لسه اللعبة ما بدأتش
   if (!started) {
     started = true;
     gameOver = false;
@@ -82,14 +84,25 @@ function flap() {
     score = 0;
     bird.y = canvas.height / 2;
     bird.v = 0;
-    document.getElementById("score").innerText = "0";
+    document.getElementById("score").innerText = "Score: 0";
     return;
   }
 
-  if (!gameOver) {
-    bird.v = jump;
+  // لو خسرت → نعيد اللعبة
+  if (gameOver) {
+    gameOver = false;
+    pipes = [];
+    score = 0;
+    bird.y = canvas.height / 2;
+    bird.v = 0;
+    document.getElementById("score").innerText = "Score: 0";
+    return;
   }
+
+  // أثناء اللعب → قفزة
+  bird.v = jump;
 }
+
 
 // Touch (موبايل)
 document.addEventListener("touchstart", function(e) {
@@ -134,14 +147,16 @@ function loop() {
         (bird.y < p.top || bird.y + bird.h > p.top + gap)
       ) {
         gameOver = true;
-        document.getElementById("score").innerText = "Game Over - Tap";
+        document.getElementById("score").innerText = "Game Over - Tap to Restart";
+
       }
 
       // SCORE (مظبوط 100%)
       if (!p.passed && bird.x > p.x + 40) {
         p.passed = true;
         score++;
-        document.getElementById("score").innerText = score;
+        document.getElementById("score").innerText = "Score: " + score;
+
       }
 
       // Top pipe (مقلوب)
@@ -174,3 +189,4 @@ loop();
 
 </body>
 </html>
+
