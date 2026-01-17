@@ -50,6 +50,7 @@ birdImg.src = "toppng.com-grey-cartoon-bird-design-600x550.png";
 const pipeImg = new Image();
 pipeImg.src = "toppng.com-flappy-bird-pipe-transparent-281x1080.png";
 
+// Bird
 let bird = {
   x: canvas.width * 0.25,
   y: canvas.height / 2,
@@ -58,15 +59,14 @@ let bird = {
   v: 0
 };
 
-
 let gravity = 0.28;
 let jump = -6.2;
-
 
 // Pipes
 let pipes = [];
 let gap = 200;
-let speed = 2.1;
+let baseSpeed = 2.1;
+let speed = baseSpeed;
 let frame = 0;
 
 // Game state
@@ -76,67 +76,52 @@ let win = false;
 let score = 0;
 let highScore = localStorage.getItem("flappyHighScore") || 0;
 
+// Flap function
 function flap() {
-
-  // أول مرة تشغيل
   if (!started) {
     started = true;
     gameOver = false;
     win = false;
     pipes = [];
     score = 0;
+    speed = baseSpeed;
     bird.y = canvas.height / 2;
     bird.v = 0;
-    document.getElementById("score").innerText = "Score: 0";
+    document.getElementById("score").innerText = "Score: 0 | Best: " + highScore;
     return;
   }
 
-  // لو خسرت أو كسبت → إعادة
   if (gameOver || win) {
     gameOver = false;
     win = false;
     pipes = [];
     score = 0;
+    speed = baseSpeed;
     bird.y = canvas.height / 2;
     bird.v = 0;
     document.getElementById("score").innerText = "Score: 0 | Best: " + highScore;
-
     return;
   }
 
-  // أثناء اللعب
   bird.v = jump;
 }
 
-
-// Touch (موبايل)
-document.addEventListener("touchstart", function(e) {
-  e.preventDefault();
-  flap();
-}, { passive: false });
-
-// Keyboard (كمبيوتر)
-document.addEventListener("keydown", function(e) {
-  if (e.code === "Space") {
-    flap();
-  }
-});
+// Touch & Keyboard
+document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, { passive:false });
+document.addEventListener("keydown", e => { if(e.code === "Space") flap(); });
 
 // Add pipe
 function addPipe() {
   let top = Math.random() * (canvas.height * 0.4) + 40;
-  pipes.push({
-    x: canvas.width,
-    top: top,
-    passed: false
-  });
+  pipes.push({ x: canvas.width, top: top, passed: false });
 }
 
 // Game loop
 function loop() {
   ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
-  if (started && !gameOver) {
+  if (started && !gameOver && !win) {
+    // Bird physics
     bird.v += gravity;
     bird.y += bird.v;
 
@@ -146,40 +131,37 @@ function loop() {
       p.x -= speed;
 
       // Collision
-      if (
-        bird.x + bird.w > p.x &&
-        bird.x < p.x + 80 &&
-        (bird.y < p.top || bird.y + bird.h > p.top + gap)
-      ) {
+      if (bird.x + bird.w > p.x && bird.x < p.x + 80 && (bird.y < p.top || bird.y + bird.h > p.top + gap)) {
         gameOver = true;
-        document.getElementById("score").innerText = "Game Over - Tap to Restart";
-
+        document.getElementById("score").innerText = "Game Over | Best: " + highScore + " | Tap to Restart";
       }
 
-     if (!p.passed && bird.x > p.x + 40) {
-  p.passed = true;
- score++;
+      // Scoring
+      if (!p.passed && bird.x > p.x + 40) {
+        p.passed = true;
+        score++;
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("flappyHighScore", highScore);
+        }
 
-if (score > highScore) {
-  highScore = score;
-  localStorage.setItem("flappyHighScore", highScore);
-}
+        // Update speed
+        if (score >= 10 && score < 20) speed = baseSpeed + 0.5;
+        else if (score >= 20 && score < 30) speed = baseSpeed + 1;
+        else if (score >= 30) speed = 0; // stop at win
 
+        // Update display
+        if (score >= 30) {
+          win = true;
+          document.getElementById("score").innerText =
+            "🎉 You Win! | Best: " + highScore + " | Tap to Restart";
+        } else {
+          document.getElementById("score").innerText =
+            "Score: " + score + " | Best: " + highScore;
+        }
+      }
 
-  if (score >= 30) {
-    win = true;
-    document.getElementById("score").innerText =
-  "🎉 You Win! | Best: " + highScore + " | Tap to Restart";
-
-  } else {
-    document.getElementById("score").innerText =
-  "Game Over | Best: " + highScore + " | Tap to Restart";
-
-  }
-}
-
-
-      // Top pipe (مقلوب)
+      // Top pipe (flipped)
       ctx.save();
       ctx.translate(p.x + 40, p.top / 2);
       ctx.scale(1, -1);
@@ -194,10 +176,11 @@ if (score > highScore) {
 
     if (bird.y < 0 || bird.y + bird.h > canvas.height) {
       gameOver = true;
-      document.getElementById("score").innerText = "Game Over - Tap";
+      document.getElementById("score").innerText = "Game Over | Best: " + highScore + " | Tap to Restart";
     }
   }
 
+  // Draw bird
   ctx.drawImage(birdImg, bird.x, bird.y, bird.w, bird.h);
 
   frame++;
@@ -209,7 +192,3 @@ loop();
 
 </body>
 </html>
-
-
-
-
