@@ -2,12 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Flappy Bird</title>
 
 <style>
-body { margin:0; background:black; overflow:hidden; }
-canvas { display:block; }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+  touch-action: manipulation;
+}
+canvas {
+  display: block;
+}
 #score {
   position: absolute;
   top: 20px;
@@ -43,7 +50,7 @@ birdImg.src = "toppng.com-grey-cartoon-bird-design-600x550.png";
 const pipeImg = new Image();
 pipeImg.src = "toppng.com-flappy-bird-pipe-transparent-281x1080.png";
 
-// Bird (قريب جدًا من الأصلي)
+// Bird (حجم وسرعة قريبة جدًا من الأصلي)
 let bird = {
   x: canvas.width * 0.25,
   y: canvas.height / 2,
@@ -52,23 +59,22 @@ let bird = {
   v: 0
 };
 
-// Physics
-let gravity = 0.35;
-let jump = -6.5;
+let gravity = 0.38;
+let jump = -6.8;
 
 // Pipes
 let pipes = [];
 let gap = 160;
-let speed = 2.2;
+let speed = 2.4;
 let frame = 0;
 
 // Game state
-let score = 0;
 let started = false;
 let gameOver = false;
+let score = 0;
 
-// Controls
-function tap() {
+// ⭐ حركة واحدة بس (لمس أو Space)
+function flap() {
   if (!started) {
     started = true;
     gameOver = false;
@@ -77,20 +83,33 @@ function tap() {
     bird.y = canvas.height / 2;
     bird.v = 0;
     document.getElementById("score").innerText = "0";
+    return;
   }
-  if (!gameOver) bird.v = jump;
+
+  if (!gameOver) {
+    bird.v = jump;
+  }
 }
-document.addEventListener("click", tap);
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") tap();
+
+// Touch (موبايل)
+document.addEventListener("touchstart", function(e) {
+  e.preventDefault();
+  flap();
+}, { passive: false });
+
+// Keyboard (كمبيوتر)
+document.addEventListener("keydown", function(e) {
+  if (e.code === "Space") {
+    flap();
+  }
 });
 
 // Add pipe
 function addPipe() {
-  let topH = Math.random() * 220 + 40;
+  let top = Math.random() * (canvas.height * 0.4) + 40;
   pipes.push({
     x: canvas.width,
-    top: topH,
+    top: top,
     passed: false
   });
 }
@@ -118,14 +137,14 @@ function loop() {
         document.getElementById("score").innerText = "Game Over - Tap";
       }
 
-      // ✅ SCORE FIX (هنا الحل)
+      // SCORE (مظبوط 100%)
       if (!p.passed && bird.x > p.x + 40) {
         p.passed = true;
         score++;
         document.getElementById("score").innerText = score;
       }
 
-      // Top pipe
+      // Top pipe (مقلوب)
       ctx.save();
       ctx.translate(p.x + 40, p.top / 2);
       ctx.scale(1, -1);
@@ -133,13 +152,7 @@ function loop() {
       ctx.restore();
 
       // Bottom pipe
-      ctx.drawImage(
-        pipeImg,
-        p.x,
-        p.top + gap,
-        80,
-        canvas.height
-      );
+      ctx.drawImage(pipeImg, p.x, p.top + gap, 80, canvas.height);
     });
 
     pipes = pipes.filter(p => p.x > -100);
