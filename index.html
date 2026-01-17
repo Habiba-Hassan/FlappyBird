@@ -87,7 +87,8 @@ function flap() {
     speed = baseSpeed;
     bird.y = canvas.height / 2;
     bird.v = 0;
-    document.getElementById("score").innerText = "Score: 0 | Best: " + highScore;
+    document.getElementById("score").innerText = `Score: ${score} | Best: ${highScore}`;
+
     return;
   }
 
@@ -99,7 +100,8 @@ function flap() {
     speed = baseSpeed;
     bird.y = canvas.height / 2;
     bird.v = 0;
-    document.getElementById("score").innerText = "Score: 0 | Best: " + highScore;
+    document.getElementById("score").innerText = `Score: ${score} | Best: ${highScore}`;
+
     return;
   }
 
@@ -133,7 +135,7 @@ function loop() {
       // Collision
       if (bird.x + bird.w > p.x && bird.x < p.x + 80 && (bird.y < p.top || bird.y + bird.h > p.top + gap)) {
         gameOver = true;
-        document.getElementById("score").innerText = "Game Over | Best: " + highScore + " | Tap to Restart";
+        document.getElementById("score").innerText = "Game Over   | Best: " + highScore + "   | Tap to Restart";
       }
 
       // Scoring
@@ -192,3 +194,4 @@ loop();
 
 </body>
 </html>
+
