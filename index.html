@@ -74,6 +74,7 @@ let started = false;
 let gameOver = false;
 let win = false;
 let score = 0;
+let highScore = localStorage.getItem("flappyHighScore") || 0;
 
 function flap() {
 
@@ -98,7 +99,8 @@ function flap() {
     score = 0;
     bird.y = canvas.height / 2;
     bird.v = 0;
-    document.getElementById("score").innerText = "Score: 0";
+    document.getElementById("score").innerText = "Score: 0 | Best: " + highScore;
+
     return;
   }
 
@@ -156,13 +158,23 @@ function loop() {
 
      if (!p.passed && bird.x > p.x + 40) {
   p.passed = true;
-  score++;
+ score++;
+
+if (score > highScore) {
+  highScore = score;
+  localStorage.setItem("flappyHighScore", highScore);
+}
+
 
   if (score >= 30) {
     win = true;
-    document.getElementById("score").innerText = "🎉 You Win! Tap to Restart 🎉";
+    document.getElementById("score").innerText =
+  "🎉 You Win! | Best: " + highScore + " | Tap to Restart";
+
   } else {
-    document.getElementById("score").innerText = "Score: " + score;
+    document.getElementById("score").innerText =
+  "Game Over | Best: " + highScore + " | Tap to Restart";
+
   }
 }
 
@@ -197,6 +209,7 @@ loop();
 
 </body>
 </html>
+
 
 
 
