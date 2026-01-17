@@ -43,7 +43,7 @@ birdImg.src = "toppng.com-grey-cartoon-bird-design-600x550.png";
 const pipeImg = new Image();
 pipeImg.src = "toppng.com-flappy-bird-pipe-transparent-281x1080.png";
 
-// Bird (REAL SIZE)
+// Bird (قريب جدًا من الأصلي)
 let bird = {
   x: canvas.width * 0.25,
   y: canvas.height / 2,
@@ -52,13 +52,17 @@ let bird = {
   v: 0
 };
 
-// Game vars (REAL FEEL)
+// Physics
 let gravity = 0.35;
 let jump = -6.5;
+
+// Pipes
 let pipes = [];
 let gap = 160;
 let speed = 2.2;
 let frame = 0;
+
+// Game state
 let score = 0;
 let started = false;
 let gameOver = false;
@@ -67,11 +71,11 @@ let gameOver = false;
 function tap() {
   if (!started) {
     started = true;
-    score = 0;
+    gameOver = false;
     pipes = [];
+    score = 0;
     bird.y = canvas.height / 2;
     bird.v = 0;
-    gameOver = false;
     document.getElementById("score").innerText = "0";
   }
   if (!gameOver) bird.v = jump;
@@ -81,7 +85,7 @@ document.addEventListener("keydown", e => {
   if (e.code === "Space") tap();
 });
 
-// Pipes
+// Add pipe
 function addPipe() {
   let topH = Math.random() * 220 + 40;
   pipes.push({
@@ -91,7 +95,7 @@ function addPipe() {
   });
 }
 
-// Loop
+// Game loop
 function loop() {
   ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
@@ -114,14 +118,14 @@ function loop() {
         document.getElementById("score").innerText = "Game Over - Tap";
       }
 
-      // Score
-      if (!p.passed && p.x + 80 < bird.x) {
+      // ✅ SCORE FIX (هنا الحل)
+      if (!p.passed && bird.x > p.x + 40) {
         p.passed = true;
         score++;
         document.getElementById("score").innerText = score;
       }
 
-      // Top pipe (FLIPPED)
+      // Top pipe
       ctx.save();
       ctx.translate(p.x + 40, p.top / 2);
       ctx.scale(1, -1);
