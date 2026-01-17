@@ -49,7 +49,7 @@ let jump = -6.2;
 // Pipes
 let pipes = [];
 let gap = 220; // مسافة أكبر بين الأنابيب
-let baseSpeed = 2.3;
+let baseSpeed = 2.1;
 let speed = baseSpeed;
 let frame = 0;
 
@@ -136,12 +136,12 @@ function loop() {
         }
       }
 
-      ctx.save(); 
-      ctx.translate(p.x + 40, p.top / 2); 
-      ctx.scale(1, -1); 
+      // Top pipe (flipped)
+      ctx.save();
+      ctx.translate(p.x + 40, p.top / 2);
+      ctx.scale(1, -1);
       ctx.drawImage(pipeImg, -40, -p.top / 2, 80, p.top);
       ctx.restore();
-
 
       // Bottom pipe
       ctx.drawImage(pipeImg, p.x, p.top + gap, 80, canvas.height);
@@ -168,7 +168,3 @@ loop();
 </script>
 </body>
 </html>
-
-
-
-
