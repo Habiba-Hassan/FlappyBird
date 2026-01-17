@@ -136,11 +136,10 @@ function loop() {
         }
       }
 
-     // Top pipe (مقلوبة)
-      ctx.save();
-      ctx.translate(p.x, p.top);   // نروح لمكان الأنبوبة
-      ctx.scale(1, -1);            // نقلبها رأسياً
-      ctx.drawImage(pipeImg, 0, 0, 80, p.top);
+      ctx.save(); 
+      ctx.translate(p.x + 40, p.top / 2); 
+      ctx.scale(1, -1); 
+      ctx.drawImage(pipeImg, -40, -p.top / 2, 80, p.top);
       ctx.restore();
 
 
@@ -169,6 +168,7 @@ loop();
 </script>
 </body>
 </html>
+
 
 
 
