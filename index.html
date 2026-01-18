@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Flappy Bird</title>
+
 <style>
 body {
   margin: 0;
@@ -11,19 +12,26 @@ body {
   background: black;
   touch-action: manipulation;
 }
-canvas { display: block; }
+
+canvas {
+  display: block;
+}
+
 #score {
   position: absolute;
-  top: 20px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   color: white;
   font-size: 28px;
   font-weight: bold;
   text-shadow: 2px 2px black;
+  text-align: center;
+  pointer-events: none;
 }
 </style>
 </head>
+
 <body>
 
 <div id="score">Tap to Start</div>
@@ -36,128 +44,140 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Images
+/* Images */
 const bg = new Image(); bg.src = "moon.png";
 const birdImg = new Image(); birdImg.src = "toppng.com-grey-cartoon-bird-design-600x550.png";
 const pipeImg = new Image(); pipeImg.src = "toppng.com-flappy-bird-pipe-transparent-281x1080.png";
 
-// Bird
-let bird = { x: canvas.width * 0.25, y: canvas.height/2, w: 44, h: 34, v: 0 };
+/* Bird */
+let bird = {
+  x: canvas.width * 0.25,
+  y: canvas.height / 2,
+  w: 44,
+  h: 34,
+  v: 0
+};
+
 let gravity = 0.28;
 let jump = -6.2;
 
-// Pipes
+/* Pipes */
 let pipes = [];
-let gap = 220; // مسافة أكبر بين الأنابيب
-let baseSpeed = 2.1;
+let gap = 220;
+
+let baseSpeed = 2.0;
 let speed = baseSpeed;
+let speedIncrease = 0.0008; // 🔥 سرعة تدريجية ثابتة
+
 let frame = 0;
 
-// Game state
+/* Game state */
 let started = false;
 let gameOver = false;
-let win = false;
 let score = 0;
 let highScore = localStorage.getItem("flappyHighScore") || 0;
 
-// Flap function
+/* Start / Jump */
 function flap() {
-  if (!started || gameOver || win) {
+  if (!started || gameOver) {
     started = true;
     gameOver = false;
-    win = false;
     pipes = [];
     score = 0;
     speed = baseSpeed;
-    bird.y = canvas.height/2;
+    bird.y = canvas.height / 2;
     bird.v = 0;
-    document.getElementById("score").innerText = `Score: ${score} | Best: ${highScore}`;
+    frame = 0;
+
+    addPipe(); // أول أنبوبة فورًا
+
+    document.getElementById("score").innerText =
+      `Score: ${score}\nBest: ${highScore}`;
     return;
   }
   bird.v = jump;
 }
 
-// Touch & Keyboard
-document.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, { passive:false });
-document.addEventListener("keydown", e => { if(e.code === "Space") flap(); });
+document.addEventListener("touchstart", e => {
+  e.preventDefault();
+  flap();
+}, { passive:false });
 
-// Add pipe
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") flap();
+});
+
+/* Pipes */
 function addPipe() {
   let top = Math.random() * (canvas.height * 0.4) + 40;
   pipes.push({ x: canvas.width, top: top, passed: false });
 }
 
-// Update speed according to score
-function updateSpeed() {
-  if (score < 10) speed = baseSpeed;
-  else if (score >= 10 && score < 20) speed = baseSpeed + 0.5;
-  else if (score >= 20 && score < 30) speed = baseSpeed + 1;
-  else if (score >= 30) speed = 0; // stop when winning
-}
-
-// Game loop
+/* Game Loop */
 function loop() {
   ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
 
-  if (started && !gameOver && !win) {
-    // Bird physics
+  if (started && !gameOver) {
+
+    /* 🔥 زيادة السرعة تدريجيًا */
+    speed += speedIncrease + score * 0.00005;
+
+    /* Bird */
     bird.v += gravity;
     bird.y += bird.v;
 
-    // Add pipes
+    /* Pipes spawn */
     if (frame % 130 === 0) addPipe();
 
     pipes.forEach(p => {
       p.x -= speed;
 
-      // Collision
-      if (bird.x + bird.w > p.x && bird.x < p.x + 80 &&
-          (bird.y < p.top || bird.y + bird.h > p.top + gap)) {
+      /* Collision */
+      if (
+        bird.x + bird.w > p.x &&
+        bird.x < p.x + 80 &&
+        (bird.y < p.top || bird.y + bird.h > p.top + gap)
+      ) {
         gameOver = true;
-        document.getElementById("score").innerText = `Game Over   | Best: ${highScore}   | Tap to Restart`;
+        document.getElementById("score").innerText =
+          `Game Over\nTap to Restart\nBest: ${highScore}`;
       }
 
-      // Score
+      /* Score */
       if (!p.passed && bird.x > p.x + 40) {
         p.passed = true;
         score++;
+
         if (score > highScore) {
           highScore = score;
           localStorage.setItem("flappyHighScore", highScore);
         }
 
-        updateSpeed();
-
-        if (score >= 30) {
-          win = true;
-          document.getElementById("score").innerText = `🎉 You Win! | Best: ${highScore} | Tap to Restart`;
-        } else {
-          document.getElementById("score").innerText = `Score: ${score} | Best: ${highScore}`;
-        }
+        document.getElementById("score").innerText =
+          `Score: ${score}\nBest: ${highScore}`;
       }
 
-      // Top pipe (flipped)
+      /* Top pipe */
       ctx.save();
       ctx.translate(p.x + 40, p.top / 2);
       ctx.scale(1, -1);
       ctx.drawImage(pipeImg, -40, -p.top / 2, 80, p.top);
       ctx.restore();
 
-      // Bottom pipe
+      /* Bottom pipe */
       ctx.drawImage(pipeImg, p.x, p.top + gap, 80, canvas.height);
     });
 
-    // Remove offscreen pipes
     pipes = pipes.filter(p => p.x > -100);
 
-    // Ceiling & ground
+    /* Bounds */
     if (bird.y < 0 || bird.y + bird.h > canvas.height) {
       gameOver = true;
-      document.getElementById("score").innerText = `Game Over | Best: ${highScore} | Tap to Restart`;
+      document.getElementById("score").innerText =
+        `Game Over\nTap to Restart\nBest: ${highScore}`;
     }
   }
 
-  // Draw bird
   ctx.drawImage(birdImg, bird.x, bird.y, bird.w, bird.h);
 
   frame++;
@@ -166,5 +186,6 @@ function loop() {
 
 loop();
 </script>
+
 </body>
 </html>
