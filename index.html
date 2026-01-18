@@ -17,24 +17,35 @@ canvas {
   display: block;
 }
 
+/* Score / Messages */
 #score {
   position: absolute;
-  top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   color: white;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
   text-shadow: 2px 2px black;
   text-align: center;
   pointer-events: none;
+}
+
+/* فوق أثناء اللعب */
+.top {
+  top: 15px;
+}
+
+/* في النص للرسائل */
+.center {
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
 </head>
 
 <body>
 
-<div id="score">Tap to Start</div>
+<div id="score" class="center">Tap to Start</div>
 <canvas id="c"></canvas>
 
 <script>
@@ -67,7 +78,7 @@ let gap = 220;
 
 let baseSpeed = 2.0;
 let speed = baseSpeed;
-let speedIncrease = 0.0008; // 🔥 سرعة تدريجية ثابتة
+let speedIncrease = 0.0008;
 
 let frame = 0;
 
@@ -76,6 +87,8 @@ let started = false;
 let gameOver = false;
 let score = 0;
 let highScore = localStorage.getItem("flappyHighScore") || 0;
+
+const scoreDiv = document.getElementById("score");
 
 /* Start / Jump */
 function flap() {
@@ -89,10 +102,11 @@ function flap() {
     bird.v = 0;
     frame = 0;
 
-    addPipe(); // أول أنبوبة فورًا
+    /* 🔧 أول أنبوبة مظبوطة */
+    addPipe(true);
 
-    document.getElementById("score").innerText =
-      `Score: ${score}\nBest: ${highScore}`;
+    scoreDiv.className = "top";
+    scoreDiv.innerText = `Score: ${score} | Best: ${highScore}`;
     return;
   }
   bird.v = jump;
@@ -108,8 +122,14 @@ document.addEventListener("keydown", e => {
 });
 
 /* Pipes */
-function addPipe() {
-  let top = Math.random() * (canvas.height * 0.4) + 40;
+function addPipe(first = false) {
+  let minTop = canvas.height * 0.25;
+  let maxTop = canvas.height * 0.45;
+
+  let top = first
+    ? canvas.height * 0.35   // 👈 أول أنبوبة ثابتة ومريحة
+    : Math.random() * (maxTop - minTop) + minTop;
+
   pipes.push({ x: canvas.width, top: top, passed: false });
 }
 
@@ -119,15 +139,15 @@ function loop() {
 
   if (started && !gameOver) {
 
-    /* 🔥 زيادة السرعة تدريجيًا */
+    /* سرعة تدريجية */
     speed += speedIncrease + score * 0.00005;
 
     /* Bird */
     bird.v += gravity;
     bird.y += bird.v;
 
-    /* Pipes spawn */
-    if (frame % 130 === 0) addPipe();
+    /* Pipes timing */
+    if (frame % 130 === 0 && frame !== 0) addPipe();
 
     pipes.forEach(p => {
       p.x -= speed;
@@ -139,7 +159,8 @@ function loop() {
         (bird.y < p.top || bird.y + bird.h > p.top + gap)
       ) {
         gameOver = true;
-        document.getElementById("score").innerText =
+        scoreDiv.className = "center";
+        scoreDiv.innerText =
           `Game Over\nTap to Restart\nBest: ${highScore}`;
       }
 
@@ -153,8 +174,8 @@ function loop() {
           localStorage.setItem("flappyHighScore", highScore);
         }
 
-        document.getElementById("score").innerText =
-          `Score: ${score}\nBest: ${highScore}`;
+        scoreDiv.innerText =
+          `Score: ${score} | Best: ${highScore}`;
       }
 
       /* Top pipe */
@@ -173,7 +194,8 @@ function loop() {
     /* Bounds */
     if (bird.y < 0 || bird.y + bird.h > canvas.height) {
       gameOver = true;
-      document.getElementById("score").innerText =
+      scoreDiv.className = "center";
+      scoreDiv.innerText =
         `Game Over\nTap to Restart\nBest: ${highScore}`;
     }
   }
